@@ -25,8 +25,9 @@ class UrlEncoder
         order_now[:children] = array
       elsif array =~ /^baby/
         order_now[:baby] = array
+      elsif array =~ /^economy|^business|^first/
+        order_now[:cabin] = array
       else
-        #order_now[:no_segment] = true
         puts "no_segment"
       end
     end
@@ -67,8 +68,10 @@ class TestMeme < Minitest::Test
     order_now[:children]   = "children1"
     order_now[:baby]       = "baby1"
 
+    order_now[:cabin]      = "business"
+
     url = UrlEncoder.new.encoder(order_now)
-    assert_equal url, "eviterra.com/MOW/LED/15-06-2013/LED/MOW/25-06-2013/adults2/children1/baby1"
+    assert_equal url, "eviterra.com/MOW/LED/15-06-2013/LED/MOW/25-06-2013/adults2/children1/baby1/business"
   end
 
   def test_decoder
@@ -86,7 +89,9 @@ class TestMeme < Minitest::Test
     order_now[:children]   = "children1"
     order_now[:baby]       = "baby1"
 
-    url_decode = "eviterra.com/MOW/LED/15-06-2013/LED/MOW/25-06-2013/adults2/children1/baby1"
+    order_now[:cabin]      = "business"
+
+    url_decode = "eviterra.com/MOW/LED/15-06-2013/LED/MOW/25-06-2013/adults2/children1/baby1/business"
     url_decode = UrlEncoder.new.decoder(url_decode)
     assert_equal url_decode, order_now
   end
