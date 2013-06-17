@@ -13,23 +13,33 @@ class UrlEncoder
     date_count ||= 0
 
     decode.each do |array|
+
       if array.size == 3
         segment_count += 1
         order_now["segment#{segment_count}".to_sym] = array
-      elsif array.size == 10
+      end
+
+      if array.size == 10
         date_count += 1
         order_now["date#{date_count}".to_sym] = array
-      elsif array =~ /^adults/
-        order_now[:adults] = array
-      elsif array =~ /^children/
-        order_now[:children] = array
-      elsif array =~ /^baby/
-        order_now[:baby] = array
-      elsif array =~ /^economy|^business|^first/
-        order_now[:cabin] = array
-      else
-        puts "no_segment"
       end
+
+      if array =~ /^adults/
+        order_now[:adults] = array
+      end
+
+      if array =~ /^children/
+        order_now[:children] = array
+      end
+
+      if array =~ /^baby/
+        order_now[:baby] = array
+      end
+
+      if array =~ /^economy|^business|^first/
+        order_now[:cabin] = array
+      end
+
     end
     order_now
   end
