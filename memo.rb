@@ -2,13 +2,36 @@
 
 class UrlEncoder
   def encoder(order_now)
-    url = "eviterra.com/#{order_now[:flight][:from]}-#{order_now[:flight][:to]}/#{order_now[:flight][:date]}/#{order_now[:flight2][:from]}-#{order_now[:flight2][:to]}/#{order_now[:flight2][:date]}/#{order_now[:order][:cabins]}/#{order_now[:order][:adult]}".gsub('//','/')
+    "eviterra.com/" + order_now.values.join("/")
   end
 
-  def decoder
+  def decoder(url_decode)
 
+    decode = url_decode.split("/") - ["eviterra.com"]
+    order_now = {}
+    segment_count ||= 0
+    date_count ||= 0
+
+    decode.each do |array|
+      if array.size == 3
+        segment_count += 1
+        order_now["segment#{segment_count}".to_sym] = array
+      elsif array.size == 10
+        date_count += 1
+        order_now["date#{date_count}".to_sym] = array
+      elsif array =~ /^adults/
+        order_now[:adults] = array
+      elsif array =~ /^children/
+        order_now[:children] = array
+      elsif array =~ /^baby/
+        order_now[:baby] = array
+      else
+        #order_now[:no_segment] = true
+        puts "no_segment"
+      end
+    end
+    order_now
   end
-
 end
 
 require "rubygems"
@@ -28,121 +51,43 @@ class TestMeme < Minitest::Test
   # 3 количество пасажиров (взрослых, детей, младенцев)
   # 4 эконом, бизнес, первый класс.
   # До 6 сегментов
-  def test_first
-    order_now = {
+  def test_encoder
 
-        :order   => { :id => nil, :child => nil,  :adult => nil, :baby => nil   },
-        :flight  => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        :flight2 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight3 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight4 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight5 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight6 => { :id => nil, :from => nil, :to => nil,  :date => nil },
+    order_now = Hash.new
 
-    }
+    order_now[:segment1]   = "MOW"
+    order_now[:segment2]   = "LED"
+    order_now[:date1]      = "15-06-2013"
 
-    order_now[:order][:id]      = 1
-    order_now[:order][:baby]    = 1
+    order_now[:segment3]   = "LED"
+    order_now[:segment4 ]  = "MOW"
+    order_now[:date2]      = "25-06-2013"
 
-    order_now[:flight][:id]     = 1
-    order_now[:flight][:from]   = "MOW"
-    order_now[:flight][:to]     = "LED"
-    order_now[:flight][:date]   = "15-06-2013"
-
-    order_now[:flight2][:id]    = 2
-    order_now[:flight2][:from]  = "LED"
-    order_now[:flight2][:to]    = "MOW"
-    order_now[:flight2][:date]  = "25-06-2013"
+    order_now[:adults]     = "adults2"
+    order_now[:children]   = "children1"
+    order_now[:baby]       = "baby1"
 
     url = UrlEncoder.new.encoder(order_now)
-    assert_equal url, "eviterra.com/MOW-LED/15-06-2013/LED-MOW/25-06-2013/"
+    assert_equal url, "eviterra.com/MOW/LED/15-06-2013/LED/MOW/25-06-2013/adults2/children1/baby1"
   end
 
-  def test_two
-    order_now = {
+  def test_decoder
+    order_now = Hash.new
 
-        :order   => { :id => nil, :child => nil,  :adult => nil, :baby => nil   },
-        :flight  => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        :flight2 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight3 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight4 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight5 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight6 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-    }
+    order_now[:segment1]   = "MOW"
+    order_now[:segment2]   = "LED"
+    order_now[:date1]      = "15-06-2013"
 
-    order_now[:order][:id]      = 1
-    order_now[:order][:baby]    = 1
-    order_now[:order][:cabins]  = "business"
+    order_now[:segment3]   = "LED"
+    order_now[:segment4 ]  = "MOW"
+    order_now[:date2]      = "25-06-2013"
 
-    order_now[:flight][:id]     = 1
-    order_now[:flight][:from]   = "MOW"
-    order_now[:flight][:to]     = "LED"
-    order_now[:flight][:date]   = "15-06-2013"
+    order_now[:adults]     = "adults2"
+    order_now[:children]   = "children1"
+    order_now[:baby]       = "baby1"
 
-    order_now[:flight2][:id]    = 2
-    order_now[:flight2][:from]  = "LED"
-    order_now[:flight2][:to]    = "MOW"
-    order_now[:flight2][:date]  = "25-06-2013"
-
-    url = UrlEncoder.new.encoder(order_now)
-    assert_equal url, "eviterra.com/MOW-LED/15-06-2013/LED-MOW/25-06-2013/business/"
-  end
-
-  def test_three
-    order_now = {
-        :order   => { :id => nil, :child => nil,  :adult => nil, :baby => nil   },
-        :flight  => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        :flight2 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight3 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight4 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight5 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight6 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-    }
-
-    order_now[:order][:id]      = 1
-    order_now[:order][:adult]   = "2adults"
-    order_now[:order][:baby]    = 1
-
-    order_now[:flight][:id]     = 1
-    order_now[:flight][:from]   = "MOW"
-    order_now[:flight][:to]     = "LED"
-    order_now[:flight][:date]   = "15-06-2013"
-
-    order_now[:flight2][:id]    = 2
-    order_now[:flight2][:from]  = "LED"
-    order_now[:flight2][:to]    = "MOW"
-    order_now[:flight2][:date]  = "25-06-2013"
-
-    url = UrlEncoder.new.encoder(order_now)
-    assert_equal url, "eviterra.com/MOW-LED/15-06-2013/LED-MOW/25-06-2013/2adults"
-  end
-
-  def test_four
-    order_now = {
-        :order   => { :id => nil, :child => nil,  :adult => nil, :baby => nil   },
-        :flight  => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        :flight2 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight3 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight4 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight5 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-        #:flight6 => { :id => nil, :from => nil, :to => nil,  :date => nil },
-    }
-
-    order_now[:order][:id]      = 1
-    order_now[:order][:adult]   = "2adults"
-    order_now[:order][:baby]    = 1
-
-    order_now[:flight][:id]     = 1
-    order_now[:flight][:from]   = "MOW"
-    order_now[:flight][:to]     = "LED"
-    order_now[:flight][:date]   = "15-06-2013"
-
-    order_now[:flight2][:id]    = 2
-    order_now[:flight2][:from]  = "LED"
-    order_now[:flight2][:to]    = "MOW"
-    order_now[:flight2][:date]  = "25-06-2013"
-
-    url = UrlEncoder.new.encoder(order_now)
-    assert_equal url, "eviterra.com/MOW-LED/15-06-2013/LED-MOW/25-06-2013/2adults"
+    url_decode = "eviterra.com/MOW/LED/15-06-2013/LED/MOW/25-06-2013/adults2/children1/baby1"
+    url_decode = UrlEncoder.new.decoder(url_decode)
+    assert_equal url_decode, order_now
   end
 end
